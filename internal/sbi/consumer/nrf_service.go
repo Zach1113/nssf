@@ -88,9 +88,8 @@ func (ns *NrfService) SendRegisterNFInstance(ctx context.Context, nssfCtx *nssf_
 					logger.MainLog.Infoln("OAuth2 setting receive from NRF:", oauth2)
 				}
 			}
-			nssf_context.GetSelf().OAuth2Required = oauth2
-			if oauth2 && nssf_context.GetSelf().NrfCertPem == "" {
-				logger.CfgLog.Error("OAuth2 enable but no nrfCertPem provided in config.")
+			if oauthErr := nssf_context.GetSelf().SetOAuth2Required(oauth2); oauthErr != nil {
+				return "", "", oauthErr
 			}
 			finish = true
 		}
@@ -103,7 +102,7 @@ func (ns *NrfService) SendDeregisterNFInstance(nfInstanceId string) (*models.Pro
 
 	var err error
 
-	ctx, pd, err := nssf_context.GetSelf().GetTokenCtx(models.ServiceName_NNRF_NFM, models.NrfNfManagementNfType_NRF)
+	ctx, pd, err := nssf_context.GetSelf().GetTokenCtxForNRF(models.ServiceName_NNRF_NFM)
 	if err != nil {
 		return pd, err
 	}
